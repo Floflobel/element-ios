@@ -8,36 +8,25 @@ jobs:
     runs-on: macos-14
 
     steps:
-      # ✅ Après (récupère le tag depuis le repo officiel)
       - name: Checkout v1.11.35
         uses: actions/checkout@v4
         with:
           repository: element-hq/element-ios
           ref: v1.11.35
-
+          submodules: recursive
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '15.4'
 
-      - name: Install Homebrew dependencies
-        run: brew install xcodegen mint
-
       - name: Install Ruby dependencies
         run: |
           gem install bundler
           bundle install
 
-      - name: Generate Xcode project
-        run: xcodegen generate
-
       - name: Install CocoaPods dependencies
         run: bundle exec pod install
-
-      - name: Patch bundle ID (requis pour build sans compte Apple)
-        run: |
-          sed -i '' 's/im\.vector\.app/com.build.elementclassic/g' Config/AppIdentifiers.xcconfig || true
 
       - name: Build xcarchive sans signature
         run: |
