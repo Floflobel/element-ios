@@ -15,12 +15,12 @@ jobs:
           ref: v1.11.35
           submodules: recursive
 
-      - name: Setup Xcode 15.4
+      - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '15.4'
 
-      - name: Install XcodeGen et Mint (via Brewfile officiel)
+      - name: Install brew tools
         run: brew bundle
 
       - name: Install Ruby gems
@@ -28,10 +28,10 @@ jobs:
           gem install bundler
           bundle install
 
-      - name: Setup project (xcodegen + pod install)
+      - name: Generate project and install pods
         run: ./setup_project.sh
 
-      - name: Build xcarchive sans signature
+      - name: Build unsigned archive
         run: |
           set -o pipefail
           xcodebuild archive \
@@ -45,14 +45,14 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             PROVISIONING_PROFILE_SPECIFIER=""
 
-      - name: Créer IPA depuis l'archive
+      - name: Create IPA
         run: |
           mkdir -p $RUNNER_TEMP/Payload
-          cp -r "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Riot.app" $RUNNER_TEMP/Payload/
+          cp -R "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Riot.app" "$RUNNER_TEMP/Payload/"
           cd $RUNNER_TEMP
-          zip -r Element-unsigned.ipa Payload/
+          /usr/bin/zip -r Element-unsigned.ipa Payload
 
-      - name: Upload IPA artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Element-unsigned.ipa
