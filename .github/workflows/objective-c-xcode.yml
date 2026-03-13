@@ -20,16 +20,28 @@ jobs:
         with:
           xcode-version: '15.4'
 
-      - name: Install brew tools
-        run: brew bundle
+      - name: Install XcodeGen
+        run: |
+          brew update
+          brew install xcodegen
+
+      - name: Verify XcodeGen
+        run: xcodegen version
+
+      - name: Install Bundler
+        run: gem install bundler
 
       - name: Install Ruby gems
-        run: |
-          gem install bundler
-          bundle install
+        run: bundle install
 
-      - name: Generate project and install pods
-        run: ./setup_project.sh
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Verify generated project
+        run: ls -la Riot.xcodeproj
+
+      - name: Install CocoaPods dependencies
+        run: bundle exec pod install --repo-update
 
       - name: Build unsigned archive
         run: |
