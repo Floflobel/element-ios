@@ -8,10 +8,13 @@ jobs:
     runs-on: macos-14
 
     steps:
+      # ✅ Après (récupère le tag depuis le repo officiel)
       - name: Checkout v1.11.35
         uses: actions/checkout@v4
         with:
+          repository: element-hq/element-ios
           ref: v1.11.35
+
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
