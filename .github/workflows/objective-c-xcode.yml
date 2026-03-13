@@ -1,0 +1,65 @@
+name: Build Unsigned IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout v1.11.35
+        uses: actions/checkout@v4
+        with:
+          ref: v1.11.35
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
+      - name: Install Homebrew dependencies
+        run: brew install xcodegen mint
+
+      - name: Install Ruby dependencies
+        run: |
+          gem install bundler
+          bundle install
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Install CocoaPods dependencies
+        run: bundle exec pod install
+
+      - name: Patch bundle ID (requis pour build sans compte Apple)
+        run: |
+          sed -i '' 's/im\.vector\.app/com.build.elementclassic/g' Config/AppIdentifiers.xcconfig || true
+
+      - name: Build xcarchive sans signature
+        run: |
+          xcodebuild archive \
+            -workspace Riot.xcworkspace \
+            -scheme Riot \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/Element.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            | xcpretty
+
+      - name: Créer l'IPA depuis l'archive
+        run: |
+          mkdir -p $RUNNER_TEMP/Payload
+          cp -r "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Riot.app" $RUNNER_TEMP/Payload/
+          cd $RUNNER_TEMP
+          zip -r Element-unsigned.ipa Payload/
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Element-unsigned.ipa
+          path: ${{ runner.temp }}/Element-unsigned.ipa
+          retention-days: 7
