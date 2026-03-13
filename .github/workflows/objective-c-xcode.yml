@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
       - name: Checkout v1.11.35
@@ -15,10 +15,15 @@ jobs:
           ref: v1.11.35
           submodules: recursive
 
-      - name: Setup Xcode
+      - name: Setup Xcode 26
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.4'
+          xcode-version: '26.0.1'
+
+      - name: Show Xcode version
+        run: |
+          xcodebuild -version
+          sw_vers
 
       - name: Install XcodeGen
         run: |
@@ -37,11 +42,18 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Verify generated project
-        run: ls -la Riot.xcodeproj
+      - name: Verify generated files
+        run: |
+          ls -la
+          ls -la Riot.xcodeproj
+          test -f Riot.xcodeproj/project.pbxproj
+          ls -la Podfile
 
       - name: Install CocoaPods dependencies
         run: bundle exec pod install --repo-update
+
+      - name: List workspace schemes
+        run: xcodebuild -list -workspace Riot.xcworkspace
 
       - name: Build unsigned archive
         run: |
