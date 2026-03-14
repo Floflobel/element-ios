@@ -25,13 +25,15 @@ jobs:
           xcodebuild -version
           sw_vers
 
-      - name: Install XcodeGen
+      - name: Install brew tools
         run: |
           brew update
-          brew install xcodegen
+          brew install xcodegen mint
 
-      - name: Verify XcodeGen
-        run: xcodegen version
+      - name: Verify tools
+        run: |
+          xcodegen version
+          mint --version
 
       - name: Install Bundler
         run: gem install bundler
@@ -41,13 +43,6 @@ jobs:
 
       - name: Generate Xcode project
         run: xcodegen generate
-
-      - name: Verify generated files
-        run: |
-          ls -la
-          ls -la Riot.xcodeproj
-          test -f Riot.xcodeproj/project.pbxproj
-          ls -la Podfile
 
       - name: Install CocoaPods dependencies
         run: bundle exec pod install --repo-update
@@ -72,7 +67,7 @@ jobs:
       - name: Create IPA
         run: |
           mkdir -p $RUNNER_TEMP/Payload
-          cp -R "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Riot.app" "$RUNNER_TEMP/Payload/"
+          cp -R "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Element.app" "$RUNNER_TEMP/Payload/" || cp -R "$RUNNER_TEMP/Element.xcarchive/Products/Applications/Riot.app" "$RUNNER_TEMP/Payload/"
           cd $RUNNER_TEMP
           /usr/bin/zip -r Element-unsigned.ipa Payload
 
